@@ -21,3 +21,4 @@ set -g theme_display_git_untracked no
 set -g theme_display_git_dirty yes
 
 alias vim nvim
+alias k kubectl
