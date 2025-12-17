@@ -1,15 +1,5 @@
-#theme = dark:catppuccin-mocha,light:catppuccin-latte
-theme = catppuccin-mocha
-
-#command = ~/.local/bin/tmux_start.sh
-#macos-titlebar-style = transparent
-
 copy-on-select = clipboard
-
-# Unbind CMD+... keys so they will be forwarded to Zellij
-#keybind = cmd+t=unbind
-#keybind = cmd+n=unbind
-#keybind = cmd+c=unbind
-#keybind = cmd+w=unbind
-#keybind = cmd+opt+left=unbind
-#keybind = cmd+opt+right=unbind
+theme = light:Alabaster,dark:Catppuccin Mocha
+#theme = Alabaster
+font-size = 16
+mouse-hide-while-typing = true
