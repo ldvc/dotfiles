@@ -1,5 +1,16 @@
-copy-on-select = clipboard
+# appearance
 theme = light:Alabaster,dark:Catppuccin Mocha
-#theme = Alabaster
+font-family = "JetBrainsMono Nerd Font Mono"
 font-size = 16
+window-height = 50
+window-width = 105
+
+# shell
 mouse-hide-while-typing = true
+clipboard-paste-protection = true
+copy-on-select = clipboard
+
+# macos
+macos-titlebar-style = native
+#macos-option-as-alt = true
+quit-after-last-window-closed = true
