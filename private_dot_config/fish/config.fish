@@ -1,12 +1,13 @@
 # Unset the default fish greeting text which messes up Zellij
 set fish_greeting
 
-set -x ZELLIJ_AUTO_EXIT true
+#set -x ZELLIJ_AUTO_EXIT true
 if status is-interactive
     # Commands to run in interactive sessions can go here
     # At this point, specify the Zellij config dir, so we can launch it manually if we want to
-    export ZELLIJ_CONFIG_DIR=$HOME/.config/zellij
+    #export ZELLIJ_CONFIG_DIR=$HOME/.config/zellij
 
+    #starship init fish | source
     # Check if our Terminal emulator is Ghostty
     if [ "$TERM" = xterm-ghostty ]
         # Launch zellij
