@@ -1,0 +1,105 @@
+"$schema" = "https://starship.rs/config-schema.json"
+format = "$os$username$hostname[](bg:blue_mid fg:arch_blue)$directory[](fg:blue_mid bg:blue_dark)$git_branch$git_status[](fg:blue_dark bg:midnight_mid)$nodejs$rust$golang$php[](fg:midnight_mid bg:midnight)$time[ ](fg:midnight)\n$character"
+palette = "arch_gradient"
+
+[character]
+error_symbol = "[>](arch_blue)"
+success_symbol = "[>](arch_blue)"
+
+[directory]
+format = "[ $path ]($style)"
+style = "fg:text_light bg:blue_mid"
+truncate_to_repo = false
+truncation_length = 2
+truncation_symbol = "…/"
+
+[directory.substitutions]
+Documents = "󰈙 "
+Downloads = " "
+Music = " "
+Pictures = " "
+
+[git_branch]
+format = "[[ $symbol $branch ](fg:text_accent bg:blue_dark)]($style)"
+style = "bg:blue_dark"
+symbol = ""
+
+[git_status]
+format = "[[($all_status$ahead_behind )](fg:text_accent bg:blue_dark)]($style)"
+style = "bg:blue_dark"
+
+[golang]
+format = "[[ $symbol ($version) ](fg:text_accent bg:midnight_mid)]($style)"
+style = "bg:midnight_mid"
+symbol = ""
+
+[hostname]
+disabled = false
+format = "[@$hostname ]($style)"
+ssh_only = false
+style = "bg:arch_blue fg:text_light"
+
+[nodejs]
+format = "[[ $symbol ($version) ](fg:text_accent bg:midnight_mid)]($style)"
+style = "bg:midnight_mid"
+symbol = ""
+
+[os]
+disabled = false
+format = "[ $symbol ]($style)"
+style = "bg:arch_blue fg:text_light"
+
+[os.symbols]
+Alpine = ""
+Amazon = ""
+Android = ""
+Arch = "󰣇"
+CentOS = ""
+Debian = "󰣚"
+EndeavourOS = ""
+Fedora = "󰣛"
+Gentoo = "󰣨"
+Linux = "󰌽"
+Macos = "󰀵"
+Manjaro = ""
+Mint = "󰣭"
+Raspbian = "󰐿"
+RedHatEnterprise = "󱄛"
+Redhat = "󱄛"
+SUSE = ""
+Ubuntu = "󰕈"
+Windows = "󰍲"
+
+[palettes.arch_gradient]
+arch_blue = "#1793d1"
+blue_dark = "#394260"
+blue_mid = "#0074ae"
+midnight = "#1d2230"
+midnight_mid = "#212736"
+separator = "#a3aed2"
+text_accent = "#769ff0"
+text_dark = "#090c0c"
+text_light = "#e3e5e5"
+text_muted = "#a0a9cb"
+
+[php]
+format = "[[ $symbol ($version) ](fg:text_accent bg:midnight_mid)]($style)"
+style = "bg:midnight_mid"
+symbol = ""
+
+[rust]
+format = "[[ $symbol ($version) ](fg:text_accent bg:midnight_mid)]($style)"
+style = "bg:midnight_mid"
+symbol = ""
+
+[time]
+disabled = false
+format = "[[ $time ](fg:text_muted bg:midnight)]($style)"
+style = "bg:midnight"
+time_format = "%R"
+
+[username]
+format = "[$user]($style)"
+show_always = true
+style_root = "bg:arch_blue fg:text_light"
+style_user = "bg:arch_blue fg:text_light"
