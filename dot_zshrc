@@ -1,0 +1,147 @@
+# Used for debugging and profiling - uncomment if needed
+#zmodload zsh/zprof
+
+# Ensure local binaries are in your PATH (critical for non-root users)
+export PATH="$HOME/.local/bin:$PATH"
+export GPG_TTY=$TTY
+
+# Homebrew: the custom prefix at ~/.pkg where it exists, else the default /opt/homebrew
+if [[ -d ~/.pkg/bin ]]; then
+  export HOMEBREW_PREFIX=$HOME/.pkg
+  export HOMEBREW_CASK_OPTS="--appdir=~/Applications"   # ~/.pkg is for a user who cannot write /Applications
+else
+  export HOMEBREW_PREFIX=/opt/homebrew
+fi
+export PATH="$HOMEBREW_PREFIX/bin:$HOMEBREW_PREFIX/sbin:$PATH"   # in place of `brew shellenv`, a fork per shell
+
+# History configuration
+HISTFILE="$HOME/.zsh_history" # The file where history is saved
+HISTSIZE=10000                # Number of commands kept in memory
+SAVEHIST=10000                # Number of commands saved to the file
+
+# History options
+setopt SHARE_HISTORY          # Share history between all terminals (implies APPEND_HISTORY)
+setopt INC_APPEND_HISTORY     # Save commands immediately after they are executed
+setopt HIST_IGNORE_DUPS       # Do not record an event that was just recorded again
+setopt HIST_IGNORE_SPACE      # Do not record an event starting with a space
+
+# Shell behavior
+setopt NO_FLOW_CONTROL        # Disable Ctrl+S/Ctrl+Q terminal freezing
+
+# Auto-source chezmoi-managed zsh scripts (~/.config/zsh/*.zsh).
+# (N) is zsh nullglob — silently no-op if the directory is empty.
+for f in ~/.config/zsh/*.zsh(N); do source "$f"; done
+
+# Set locale only if not already properly set
+if [[ -z "$LC_ALL" || "$LC_ALL" != "en_US.UTF-8" ]]; then
+  export LC_CTYPE=en_US.UTF-8
+  export LC_ALL=en_US.UTF-8
+fi
+
+# --- START OF COMPLETION ---
+
+# Completion files for the ~/.config/zsh modules, which load before compinit.
+# Homebrew's site-functions too: macOS bundled zsh does not search them.
+fpath=(~/.config/zsh/completions $fpath $HOMEBREW_PREFIX/share/zsh/site-functions)
+
+# Load and initialize the completion engine (early, so eval'd tools can use compdef)
+# Cache compinit: a full rebuild after 24h, or when a completion dir changed.
+# -C skips the dump freshness check and compaudit entirely.
+# The glob qualifier requires extendedglob, scoped via anonymous function.
+# The rm: compinit -i keeps a dump whose file count still matches, so its
+# date never moved and -C never ran. -nt: a changed module completion file
+# or a brew (un)link rebuilds at the next shell, not a day later.
+autoload -Uz compinit
+() {
+  setopt localoptions extendedglob
+  if [[ -n ~/.zcompdump(#qN.mh+24) ||
+        ~/.config/zsh/completions -nt ~/.zcompdump ||
+        $HOMEBREW_PREFIX/share/zsh/site-functions -nt ~/.zcompdump ]]; then
+    rm -f ~/.zcompdump
+    compinit -i
+  else
+    compinit -C
+  fi
+  # -C also writes a dump when none exists, so compile whichever dump is newest.
+  # Rename into place: a concurrent shell must never source a half-written .zwc.
+  [[ ~/.zcompdump.zwc -nt ~/.zcompdump ]] ||
+    { zcompile ~/.zcompdump.$$.zwc ~/.zcompdump && mv -f ~/.zcompdump.$$.zwc ~/.zcompdump.zwc }
+}
+
+# Completion behavior
+zstyle ':completion:*:-command-:*' ignored-patterns 'zmodload' 'zmore'
+zstyle ':completion:*' matcher-list '' 'm:{a-zA-Z}={A-Za-z}' 'r:|[._-]=* r:|=*' 'l:|=* r:|=*'
+
+# --- END OF COMPLETION ---
+
+# Activate mise safely
+if [ -x "$HOME/.local/bin/mise" ]; then
+  eval "$("$HOME/.local/bin/mise" activate zsh)"
+fi
+
+# _kubectl comes from Homebrew's site-functions; aliases expand before completion.
+if command -v kubectl &> /dev/null; then
+  alias k='kubectl'
+fi
+
+# _zmx in site-functions only defines itself on the first TAB; this registers it at startup.
+cached_output zmx completions zsh && source $REPLY
+
+# fzf
+# No tty on stdin: fzf's bindings only print "can't change option: zle".
+[[ -t 0 ]] && cached_output fzf --zsh && source $REPLY
+
+# aliases
+if command -v nvim &> /dev/null; then
+  alias vim='nvim'
+  export EDITOR=nvim VISUAL=nvim
+fi
+
+if command -v eza &> /dev/null; then
+  alias ll='eza -lh --group-directories-first --git'
+else
+  # Fallback to plain ls (cross-platform)
+  if [[ "$OSTYPE" == darwin* ]]; then
+    alias ll='ls -lhG'
+  else
+    alias ll='ls -lh --color=auto'
+  fi
+fi
+
+alias renovate='docker run --rm -e RENOVATE_CONFIG_FILE="/config.js" -e LOG_LEVEL="debug" -e GIT_CONFIG_COUNT="1" -e GIT_CONFIG_KEY_0="safe.directory" -e "GIT_CONFIG_VALUE_0=*" -e RENOVATE_PLATFORM="local" -v $PWD:/usr/src/app/ -v $HOME/renovate/config.js:/config.js renovate/renovate:43.2.8'
+
+# Go (skip if mise manages your Go installation)
+## golang stuff
+export GOPATH="$HOME/Code/go"
+export PATH="$PATH:$GOPATH/bin"
+
+# Autosuggestions
+# git clone https://github.com/zsh-users/zsh-autosuggestions ~/.zsh/zsh-autosuggestions
+[ -f ~/.zsh/zsh-autosuggestions/zsh-autosuggestions.zsh ] && \
+  source ~/.zsh/zsh-autosuggestions/zsh-autosuggestions.zsh
+
+# Syntax (to be loaded after everything else)
+# git clone https://github.com/zsh-users/zsh-syntax-highlighting ~/.zsh/zsh-syntax-highlighting
+[ -f ~/.zsh/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh ] && \
+  source ~/.zsh/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+
+# History search
+# git clone https://github.com/zsh-users/zsh-history-substring-search ~/.zsh/zsh-history-substring-search
+if [ -f ~/.zsh/zsh-history-substring-search/zsh-history-substring-search.zsh ]; then
+  source ~/.zsh/zsh-history-substring-search/zsh-history-substring-search.zsh
+  bindkey '^[[A' history-substring-search-up
+  bindkey '^[[B' history-substring-search-down
+fi
+
+# Initialize prompt
+cached_output starship init zsh && source $REPLY
+# No right_format in starship.toml: skip the second starship process per prompt (7ms).
+RPROMPT=
+
+# To switch to pure, comment the starship block above and uncomment below.
+# If pure is installed via Homebrew, its fpath comes from site-functions:
+# autoload -Uz promptinit && promptinit
+# prompt pure 2>/dev/null
+
+# Used for profiling only
+#zprof

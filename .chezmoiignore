@@ -1,5 +1,6 @@
 # Repo-meta: tracked in git, never applied to the home dir.
 # The work repo pins these source paths through externals, so a rename, a new attribute (executable_, private_, .tmpl) or a dot_ file inside nvim/ breaks it:
 # private_dot_config/ghostty/config, private_dot_config/starship.toml, private_dot_config/nvim/, dot_claude/CLAUDE.md,
-# dot_claude/statusline-command.sh, dot_claude/hooks/context-nudge.sh, dot_claude/rules/pstack-models.md
+# dot_claude/statusline-command.sh, dot_claude/hooks/context-nudge.sh, dot_claude/rules/pstack-models.md, dot_zshrc,
+# private_dot_config/zsh/{cached-output,difft,git-index-refresh,k9s-palette,mouse-reset,ssh-agent}.zsh
 tests
