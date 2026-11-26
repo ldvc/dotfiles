@@ -96,13 +96,11 @@ format = '[ $symbol ](fg:crust bg:green)'
 
 [c]
 symbol = " "
-style = "bg:green"
-format = '[[ $symbol( $version) ](fg:crust bg:green)]($style)'
+format = '[ $symbol ](fg:crust bg:green)'
 
 [rust]
 symbol = ""
-style = "bg:green"
-format = '[[ $symbol( $version) ](fg:crust bg:green)]($style)'
+format = '[ $symbol ](fg:crust bg:green)'
 
 [golang]
 symbol = ""
