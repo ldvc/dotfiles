@@ -8,7 +8,7 @@ setup() {
 
 @test "no zsh function name starts with a single underscore" {
   run grep -nE '^[[:space:]]*(function[[:space:]]+)?_[A-Za-z0-9][A-Za-z0-9_]*[[:space:]]*(\(\)|\{)' \
-    "$REPO_ROOT"/private_dot_config/zsh/*.zsh
+    "$REPO_ROOT"/private_dot_config/zsh/*.zsh "$REPO_ROOT"/dot_zshrc
   echo "$output"
   [ "$status" -eq 1 ]
 }
