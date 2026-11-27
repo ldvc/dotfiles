@@ -25,7 +25,7 @@ If unclear which env a command targets, ask.
 
 ### Subagents to preserve context
 
-The main agent orchestrates and holds the user-facing thread. Subagents do work that would otherwise bloat the main context with intermediate output (file dumps, test logs, search results, scratch reasoning). Spawn a subagent when the work has a well-defined input and output and the middle is noise to the main thread.
+The main agent orchestrates and holds the user-facing thread. Subagents do work with a clear input and output, so file dumps, test logs and search results stay out of the main context.
 
 Every brief, for any subagent type, ends with the report shape: at most 25 lines and 2,000 characters, results and blockers first. The main agent relays the decision points, not the report.
 
@@ -34,44 +34,44 @@ Default split for non-trivial changes. Trivial means mechanical with no behavior
 - **Implementer subagent**: one milestone per agent. The brief names the spec, the files in scope and the exact signal command. When the signal is green, it returns a diff summary. After 2 red runs on the same failure, it hands back with the failing output.
 - **Reviewer subagent**: reads the diff against the spec and the repo's conventions, and follows the code wherever a finding leads. It returns a list of issues, not a re-narration of the code. The brief carries what the main agent already established (known risks, ruled-out causes), so exploration goes to new ground.
 
-The reviewer must be a separate subagent from the implementer. Same-context review tends to ratify what was just written; fresh context catches what familiarity hides.
+Start the implementer and the reviewer as two separate fresh agents, each with a written brief. Fresh context catches what familiarity hides, and a fresh agent starts with only its brief. A fork copies the full parent context. For other subagents, write a brief and start a fresh agent. If the brief cannot be written, use a fork. After each non-trivial change, the main agent starts the reviewer on its own.
 
-Parallelize with Task when work is independent:
+If work is independent, parallelize it with Agent:
 - Reading independent files across a large repo
 - Searching multiple repos for the same pattern
 - Running independent test suites
 - Gathering context from unrelated subsystems before a plan
 
-Sequential tool calls are fine for dependent work. Don't fan out to look busy.
+At a phase boundary, the main agent asks the user to run `/compact`, or writes a short handoff file and proposes a new session. One boundary is the end of the review loop, before git work starts.
 
 ### `/loop` to convergence
 
-For tasks with an objective pass/fail signal (tests, lint, type-check, plan-clean), use `/loop` to drive cycles until both:
+For tasks with an objective pass/fail signal (tests, lint, type errors, plan-clean), use `/loop` to drive cycles until both:
 1. The objective signal is green, AND
 2. The reviewer subagent returns no blocking issues
 
 Each iteration:
 1. **Implementer** makes a change toward the goal
-2. **Signal check** runs the objective command (test/lint/plan/etc.)
+2. **Signal step** runs the objective command (test, lint, type errors or plan)
 3. **Reviewer** (not the implementer) returns a structured list: blocking issues, suggestions, nits
    - First pass: a fresh reviewer reviews the full diff.
    - Middle passes: continue that reviewer with `SendMessage`. Give it the new delta (`git diff <last-reviewed-sha>`) and its open blockers.
    - Exit pass: once the signal is green and the delta pass shows no blockers, a fresh reviewer at full effort reviews the full diff. Its brief lists the blockers already closed. Its blockers reopen the loop.
-4. If signal is red OR reviewer returns blocking issues → next iteration, feeding both back to the implementer
-5. If signal is green AND the exit pass has no blockers → exit
+4. If signal is red OR reviewer returns blocking issues, start the next iteration and give the implementer the failures and the in-scope findings
+5. If signal is green AND the exit pass has no blockers, exit
 
 The reviewer is inside the loop, not after it. A green test suite with garbage code still iterates. A clean review with red tests still iterates. The exit pass is fresh because a reviewer that follows its own blockers tends to accept their fixes.
 
 Blocking vs non-blocking is the reviewer's call, but the categories are fixed:
 - **Blocking**: correctness, security, a broken rule from CLAUDE.md, ~/.claude/rules/ or the skill, a broken interface contract, a regression the tests miss.
-- **Suggestion**: real improvement, not required to ship. Prose style (simple-english hits, wording, sentence length) is a suggestion. Wrong facts, commands, paths or flags block, and so do hard format rules such as no emoji.
-- **Nit**: style preference, ignorable
+- **Suggestion**: real improvement. Prose style (simple-english hits, wording, sentence length) is a suggestion. Wrong facts, commands, paths or flags block, and so do hard format rules such as no emoji.
+- **Nit**: style preference
 
 From the third review pass on, exit pass included, a blocker cites a repro or a file:line that contradicts the spec. Without either, it goes to the user as an open question.
 
-Only blockers gate the exit. Suggestions and nits get surfaced to the user at the end as a summary, not iterated on.
+Only blockers gate the exit. Each iteration, give the implementer the in-scope suggestions and nits with the blockers. After the exit pass, fix its in-scope suggestions and nits, then exit. At the end, list the out-of-scope ones for the user.
 
-Cap iterations (default: 3). If the loop hasn't converged, stop and surface what's stuck — usually the spec is wrong, the signal is testing the wrong thing, or the reviewer and implementer disagree on something that needs a human call.
+Cap the loop at 3 iterations. If the loop does not converge, stop and show the user what is stuck. Usually the spec is wrong, the signal tests the wrong thing, or the reviewer and implementer disagree on a human call.
 
 Good `/loop` targets:
 - Failing test suite → all green AND review-clean
@@ -79,9 +79,9 @@ Good `/loop` targets:
 - Terraform plan with unexpected changes → plan matches intent AND review-clean
 - Type errors → clean compile AND review-clean
 
-Bad `/loop` targets: anything where "done" is subjective at the spec level (style, naming, architecture). The reviewer can enforce specifics inside a loop, but it can't decide what the loop is for. Those need a human, not an automated cycle.
+Bad `/loop` targets: anything where "done" is subjective at the spec level (style, naming, architecture). The reviewer can enforce specifics inside a loop, but it cannot decide what the loop is for. Those need a human, not an automated cycle.
 
-Text-only diffs (docs, ADRs, skills, dashboard descriptions, PR bodies) get one fresh reviewer instead of the loop and its exit pass. Fix its blockers, compare each changed command, path and flag with its source, then stop. A diff that also changes code follows the loop.
+Text-only diffs (docs, ADRs, skills, dashboard descriptions, PR bodies) get one fresh reviewer instead of the loop and its exit pass. Fix its in-scope findings, compare each changed command, path and flag with its source, then stop. A diff that also changes code follows the loop.
 
 ---
 
