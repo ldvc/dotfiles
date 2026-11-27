@@ -1,1 +1,1 @@
-{"type":"assistant","isSidechain":false,"message":{"model":"claude-opus-5-5","usage":{"input_tokens":1000,"cache_read_input_tokens":150000,"cache_creation_input_tokens":48999,"output_tokens":10}}}
+{"type":"assistant","isSidechain":false,"message":{"model":"claude-opus-5-5","usage":{"input_tokens":1000,"cache_read_input_tokens":70000,"cache_creation_input_tokens":48999,"output_tokens":10}}}
