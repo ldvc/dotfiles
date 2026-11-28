@@ -1,2 +1,3 @@
 .config/nvim/.neoconf.json
 .config/nvim/.gitignore
+.config/fish/conf.d/omf.fish
